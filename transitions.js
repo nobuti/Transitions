@@ -116,7 +116,7 @@
 		*/
 		ease: function(fn)
 		{
-			(typeof fn === "string") ? (this._easing = tween.easing[fn] || tween.easing.ease) : tween.easing.ease;
+			(typeof fn !== "string") ? this._easing = tween.easing.ease : this._easing = fn;
 			return this;
 		},
 		/**

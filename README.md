@@ -32,3 +32,19 @@ Then use it. Simple.
   		.set('font-size',30)					// animate 'font-size' property to 30px
   		.now(complete_cb);						// begin! with callback
 
+It comes with predefined easing equations:
+	
+	tween.easing = {
+		"ease": "cubic-bezier(0.25, 0.1, 0.25, 1.0)",
+		"linear": "cubic-bezier(0.0, 0.0, 1.0, 1.0)",
+		"ease-in": "cubic-bezier(0.42, 0, 1.0, 1.0)",
+		"ease-out": "cubic-bezier(0, 0, 0.58, 1.0)",
+		"ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1.0)"
+	};
+
+but now thaks to [@leaverou](http://twitter.com/#!/leaverou) with [awesome cubic bezier generation tool](http://cubic-bezier.com/) is posible to pass whatever equation is in your mind. Just do:
+
+	tween('.block')
+		.ease('cubic-bezier(.17,.67,.83,.67)')
+		.translate(100)
+		.now();
