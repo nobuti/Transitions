@@ -46,7 +46,7 @@
 		* 
 		*/
 		init: function(selector){
-			this.el = (typeof selector === "string" ? this.select(selector) : selector);
+			this.el = this.select(selector);
 			this._delay = tween.defaults.delay;
 			this._easing = tween.defaults.easing;
 			this._duration = tween.defaults.duration;
@@ -87,7 +87,7 @@
 		*/
 		select: function(selector)
 		{
-			if (typeof selector !== "string") return selector;
+			if (typeof selector !== "string") return (selector[0] || selector);
 			return document.getElementById(selector) || document.querySelectorAll(selector)[0];
 		},
 		/**
