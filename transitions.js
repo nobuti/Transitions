@@ -101,8 +101,8 @@
 				str = '';
 			for (var i in props){
 				if (props.hasOwnProperty(i)){
-					el.style.setProperty(i, props[i]+(tween.units[i] ? tween.units[i] : ''),'');
-					str += i+": "+props[i]+(tween.units[i] ? tween.units[i] : '')+"\n";
+					el.style.setProperty(i, props[i],'');
+					str += i+": "+props[i]+"\n";
 				}
 			}
 			if (this._debug)
@@ -289,30 +289,6 @@
 		"transition": ["transition", "msTransition", "MozTransition", "WebkitTransition", "OTransition"],
 		"animation": ["animation", "msAnimation", "MozAnimation", "WebkitAnimation", "OAnimation"],
 		"prefix": ["","-ms-","-moz-","-webkit-","-o-"]
-	};
-	/**
-	* 
-	* Map of properties than use px in their units
-	* 
-	*/
-	tween.units = {
-		'top': 'px',
-		'bottom': 'px',
-		'left': 'px',
-		'right': 'px',
-		'width': 'px',
-		'height': 'px',
-		'font-size': 'px',
-		'margin': 'px',
-		'margin-top': 'px',
-		'margin-bottom': 'px',
-		'margin-left': 'px',
-		'margin-right': 'px',
-		'padding': 'px',
-		'padding-top': 'px',
-		'padding-bottom': 'px',
-		'padding-left': 'px',
-		'padding-right': 'px'
 	};
 	/**
 	* 
