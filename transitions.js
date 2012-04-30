@@ -199,7 +199,9 @@
 			this.trigger('start');
 
 			this.set(this._prefix+"transition-duration",this._duration*1000+"ms");
-			this.set(this._prefix+"transition-delay",this._delay*1000+"ms");
+			if (this._delay != 0){
+				this.set(this._prefix+"transition-delay",this._delay*1000+"ms");
+			}
 			this.set(this._prefix+"transition-timing-function",this._easing);
 
 			if (t.length) this.set(this._prefix+"transform",t.join(' '));
@@ -209,8 +211,8 @@
 			var self = this;
 			setTimeout(function(){
 				self.trigger("complete");
-				this._transformations = [];
-				this._props = {};
+				self._transformations = [];
+				self._props = {};
 				if (typeof fn === 'function'){
 					fn.apply(null);
 				}
