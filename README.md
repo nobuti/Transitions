@@ -32,7 +32,7 @@ Then use it. Simple.
   		.set('font-size','30px')				// animate 'font-size' property to 30px
   		.now(complete_cb);						// begin! with callback
 
-You have to pass the unit mesure to «set» method. Check [here](http://www.w3.org/TR/css3-transitions/#animatable-css) which properties are animables and what type is expected.
+You have to pass the unit (px,% mainly) to «set» method. Check [here](http://www.w3.org/TR/css3-transitions/#animatable-css) which properties are animables and what type is expected.
 
 It comes with predefined easing equations:
 	
