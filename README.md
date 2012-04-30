@@ -3,7 +3,7 @@ Small library to manage CSS Transitions and CSS 2D Transforms.
 
 ## Getting started
 
-Firts, this is important, include the script on your html file.
+First, this is important, include the script in your html file.
 Then use it. Simple.
 	
 	function complete_cb()
