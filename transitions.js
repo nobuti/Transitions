@@ -4,6 +4,20 @@
 
 	/**
 	* 
+	* Augment object's prototype to check 
+	* if an object has no properties.
+	* 
+	*/
+	Object.prototype.isEmpty = function() {
+    	var size = 0, key;
+    	for (key in this) {
+        	if (this.hasOwnProperty(key)) size++;
+    	}
+    	return (size === 0);
+	};
+
+	/**
+	* 
 	* Helper to get vendor prefixes.
 	* @param {Array} prefixes
 	* 
@@ -45,17 +59,31 @@
 		* @param {String or object} selector
 		* 
 		*/
-		init: function(selector){
+		init: function(selector)
+		{
 			this.el = this.select(selector);
-			this._delay = tween.defaults.delay;
-			this._easing = tween.defaults.easing;
-			this._duration = tween.defaults.duration;
-			this._transformations = [];
-			this._props = {};
-			this._callbacks = {};
+			this.reset();
+			this._stack = [];
+			this._fn = null;
 			this._debug = false;
 			this._prefix=getVendorPrefix(tween.vendor.transition);
 			return this;
+		},
+		/**
+		* 
+		* Clone an object
+		* @param {Object} obj
+		* 
+		*/
+		extend: function(obj)
+		{
+			var target = {};
+			for (var i in obj) {
+				if (obj.hasOwnProperty(i)) {
+					target[i] = obj[i];
+				}
+			}
+   			return target;
 		},
 		/**
 		* 
@@ -63,7 +91,8 @@
 		* @param {Boolean} b
 		* 
 		*/
-		debug: function(b){
+		debug: function(b)
+		{
 			(typeof b !== "boolean") ? this._debug = false : this._debug = b;
 			return this;
 		},
@@ -95,9 +124,9 @@
 		* Map all transitions/transformation into the style element
 		* 
 		*/
-		applyProperties: function(){
-			var props = this._props,
-				el = this.el,
+		applyProperties: function(props)
+		{
+			var el = this.el,
 				str = '';
 			for (var i in props){
 				if (props.hasOwnProperty(i)){
@@ -169,7 +198,8 @@
 		* @param {Number} angle
 		* 
 		*/
-		rotate: function(angle){
+		rotate: function(angle)
+		{
 			this._transformations.push("rotate(" + angle + "deg)");
 			return this;
 		},
@@ -180,12 +210,91 @@
 		* @param {Number} angleY optional
 		* 
 		*/
-		skew: function(angleX, angleY){
+		skew: function(angleX, angleY)
+		{
 			this._transformations.push("skewX(" + angleX + "deg)");
 			if (angleY){
 				this._transformations.push("skewY(" + angleY + "deg)");
 			}
 			return this;
+		},
+		/**
+		* 
+		* Defaults the properties
+		* 
+		*/
+		reset: function()
+		{
+			this._delay = tween.defaults.delay;
+			this._easing = tween.defaults.easing;
+			this._duration = tween.defaults.duration;
+			this._transformations = [];
+			this._props = {};
+			this._callbacks = {};
+		}
+		/**
+		* 
+		* Deferred upcoming transitions
+		* @param {Number or string} secs 
+		* 
+		*/
+		wait: function(secs)
+		{
+			this._delay = (typeof secs === "number") ?  this._delay + secs : this._delay + parseFloat(secs);
+
+			var t = this._transformations;
+			this.trigger('start');
+
+			this.set(this._prefix+"transition-duration",this._duration*1000+"ms");
+			if (this._delay != 0){
+				this.set(this._prefix+"transition-delay",this._delay*1000+"ms");
+			}
+			this.set(this._prefix+"transition-timing-function",this._easing);
+
+			if (t.length) this.set(this._prefix+"transform",t.join(' '));
+
+			// Clone the props
+			var props = this.extend(this._props),
+				state = {
+					delay: this._delay,
+					duration: this._duration,
+					props: props
+				}
+			// Reset 
+			this.reset();
+			// Stack current stage
+			this._stack.push(state);
+			
+			return this;
+		},
+		/**
+		* 
+		* Helper to apply the effect. DRY.
+		* 
+		*/
+		fx: function()
+		{
+			if (this._stack.length){
+				var state = this._stack.shift(),
+					self = this;
+				this.applyProperties(state.props);
+
+				setTimeout(function(){
+					self.trigger("complete");
+				}, (state.duration+state.delay)*1000 );
+
+			} else {
+				this.off('complete', this.bridge);
+			}
+		},
+		/**
+		* 
+		* Helper to path the application
+		* 
+		*/
+		bridge: function()
+		{
+			this.fx();
 		},
 		/**
 		* 
@@ -206,9 +315,27 @@
 
 			if (t.length) this.set(this._prefix+"transform",t.join(' '));
 
-			this.applyProperties();
+			// Clone the props
+			var props = this.extend(this._props),
+				state = {
+					delay: this._delay,
+					duration: this._duration,
+					props: props
+				}
+			// Reset 
+			this.reset();
+			// Stack current stage
+			this._stack.push(state);
+
+			// Suscribe to complete event
+			this.on('complete', this.bridge);
+			// begin 
+			this.fx();
 			
-			var self = this;
+			if (typeof fn === 'function'){
+				this._fn = fn;
+			}
+			/*var self = this;
 			setTimeout(function(){
 				self.trigger("complete");
 				self._transformations = [];
@@ -216,7 +343,7 @@
 				if (typeof fn === 'function'){
 					fn.apply(null);
 				}
-			}, (this._duration+this._delay)*1000 )
+			}, (this._duration+this._delay)*1000 )*/
 			
 			return this;
 		},
@@ -233,6 +360,25 @@
 			var _e = this._callbacks[event] || (this._callbacks[event] = []);
 			_e.push(fn);
 			return this;
+		},
+		/**
+		* 
+		* Unsuscriber of oberver pattern implementation
+		* @param {String} event 
+		* @param {Function} fn callback
+		* 
+		*/
+		off: function(event, fn)
+		{
+			if (typeof event !== "string") return this;
+			var _e = this._callbacks[event] || (this._callbacks[event] = []);
+			if (!l) return this;
+			while (l--) {
+				if (_e[l] === fn){
+					_e.slice(l,1);
+				}
+				
+			}
 		},
 		/**
 		* 
