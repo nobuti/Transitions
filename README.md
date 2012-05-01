@@ -14,17 +14,35 @@ Then use it. Simple.
 	{
 		console.log("callback");
 	}
-	tween('.block')								// selector passed on tween nomenclature
-		.debug(true) 							// set debug to true
-		.duration(2)							// set duration to 2 secs
-		.delay(1)								// set delay to 1 sec
-  		.set('background-color', '#666')		// animate 'background-color' property to #666
-  		.ease('ease-in-out')					// set easing function
-  		.translate(100)							// "move to" transformation
-  		.skew(15,15)							// "skew" tranformation
-  		.on("start", start_cb)					// "start" event
-		.on("complete", complete_cb)			// "complete" event
-  		.now();									// begin!
+	tween('.block')									// selector passed on tween nomenclature
+		.debug(true) 								// set debug to true
+		.duration(2)								// set duration to 2 secs
+		.delay(1)									// set delay to 1 sec
+  		.set('background-color', '#666')			// animate 'background-color' property to #666
+  		.ease('ease-in-out')						// set easing function
+  		.translate(100)								// "move to" transformation
+  		.skew(15,15)								// "skew" tranformation
+  		.on("start", start_cb)						// "start" event
+		.on("complete", complete_cb)				// "complete" event
+  		.now();										// begin!
+
+  	tween('.block')									// selector passed on tween nomenclature
+		.on("start", start_cb)						// "start" event
+		.on("complete", complete_cb)				// "complete" event
+		.debug(true)								// set debug to true
+		.duration(2)								// set duration to 2 secs
+  		.set('background-color', '#666')			// animate 'background-color' property to #666
+  		.ease('cubic-bezier(.17,.67,.83,.67)')		// set custom easing function
+  		.translate(100)								// "move to" transformation
+  		.wait(2)									// wait 2 seconds before continue. This resets to defaults easing, delay and duration properties.
+  			.set('background-color', '#ff0099')		// animate 'background-color' property to #ff0099
+  			.wait(1)								// wait 1 second
+  				.duration(5)						// set duration to 5 secs for this animation
+  				.translate(10)						// "move to" transformation
+  				.wait(1)							// wait 1 second
+  					.duration(0.2)					// and we finish with a very fast transition
+  					.translate(100)
+  					.now();
 
   	var li = document.getElementsByTagName('li')[0];
 

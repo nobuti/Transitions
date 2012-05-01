@@ -4,20 +4,6 @@
 
 	/**
 	* 
-	* Augment object's prototype to check 
-	* if an object has no properties.
-	* 
-	*/
-	Object.prototype.isEmpty = function() {
-    	var size = 0, key;
-    	for (key in this) {
-        	if (this.hasOwnProperty(key)) size++;
-    	}
-    	return (size === 0);
-	};
-
-	/**
-	* 
 	* Helper to get vendor prefixes.
 	* @param {Array} prefixes
 	* 
@@ -63,6 +49,7 @@
 		{
 			this.el = this.select(selector);
 			this.reset();
+			this._callbacks = {};
 			this._stack = [];
 			this._fn = null;
 			this._debug = false;
@@ -230,8 +217,7 @@
 			this._duration = tween.defaults.duration;
 			this._transformations = [];
 			this._props = {};
-			this._callbacks = {};
-		}
+		},
 		/**
 		* 
 		* Deferred upcoming transitions
@@ -240,31 +226,10 @@
 		*/
 		wait: function(secs)
 		{
-			this._delay = (typeof secs === "number") ?  this._delay + secs : this._delay + parseFloat(secs);
-
-			var t = this._transformations;
-			this.trigger('start');
-
-			this.set(this._prefix+"transition-duration",this._duration*1000+"ms");
-			if (this._delay != 0){
-				this.set(this._prefix+"transition-delay",this._delay*1000+"ms");
-			}
-			this.set(this._prefix+"transition-timing-function",this._easing);
-
-			if (t.length) this.set(this._prefix+"transform",t.join(' '));
-
-			// Clone the props
-			var props = this.extend(this._props),
-				state = {
-					delay: this._delay,
-					duration: this._duration,
-					props: props
-				}
-			// Reset 
-			this.reset();
-			// Stack current stage
-			this._stack.push(state);
-			
+			var waiting = (typeof secs === "number") ?  secs : parseFloat(secs);
+			this.stack();
+			// Stack waiting
+			this._stack.push(waiting);
 			return this;
 		},
 		/**
@@ -277,36 +242,34 @@
 			if (this._stack.length){
 				var state = this._stack.shift(),
 					self = this;
-				this.applyProperties(state.props);
 
-				setTimeout(function(){
-					self.trigger("complete");
-				}, (state.duration+state.delay)*1000 );
+				if (typeof state === 'number'){
+					setTimeout(function(){
+						self.fx()
+					}, state*1000);
+				} else {
+					this.applyProperties(state.props);
+					setTimeout(function(){
+						self.trigger("stacked");
+					}, (state.duration+state.delay)*1000 );
+				}
 
 			} else {
-				this.off('complete', this.bridge);
+				this.off('complete', this.fx);
+				this.trigger("complete");
+				if (typeof this._fn === 'function'){
+					this._fn.apply(null);
+				}
 			}
 		},
 		/**
 		* 
-		* Helper to path the application
+		* Helper to grab an state. DRY
 		* 
 		*/
-		bridge: function()
-		{
-			this.fx();
-		},
-		/**
-		* 
-		* Trigger to start the transition
-		* @param {Function} fn optional callback
-		* 
-		*/
-		now: function(fn)
+		stack: function()
 		{
 			var t = this._transformations;
-			this.trigger('start');
-
 			this.set(this._prefix+"transition-duration",this._duration*1000+"ms");
 			if (this._delay != 0){
 				this.set(this._prefix+"transition-delay",this._delay*1000+"ms");
@@ -326,25 +289,25 @@
 			this.reset();
 			// Stack current stage
 			this._stack.push(state);
-
-			// Suscribe to complete event
-			this.on('complete', this.bridge);
+		},
+		/**
+		* 
+		* Trigger to start the transition
+		* @param {Function} fn optional callback
+		* 
+		*/
+		now: function(fn)
+		{
+			this.trigger('start');
+			this.stack();
+			// Suscribe to 'stacked' event
+			this.on('stacked', this.fx);
 			// begin 
 			this.fx();
 			
 			if (typeof fn === 'function'){
 				this._fn = fn;
 			}
-			/*var self = this;
-			setTimeout(function(){
-				self.trigger("complete");
-				self._transformations = [];
-				self._props = {};
-				if (typeof fn === 'function'){
-					fn.apply(null);
-				}
-			}, (this._duration+this._delay)*1000 )*/
-			
 			return this;
 		},
 		/**
@@ -371,7 +334,7 @@
 		off: function(event, fn)
 		{
 			if (typeof event !== "string") return this;
-			var _e = this._callbacks[event] || (this._callbacks[event] = []);
+			var _e = this._callbacks[event] || [], l=_e.length;
 			if (!l) return this;
 			while (l--) {
 				if (_e[l] === fn){
