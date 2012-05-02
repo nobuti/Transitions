@@ -234,6 +234,16 @@
 		},
 		/**
 		* 
+		* Deferred upcoming transitions
+		* Wrapper for wait(0)
+		* 
+		*/
+		next: function(){
+			this.wait(0);
+			return this;
+		},
+		/**
+		* 
 		* Helper to apply the effect. DRY.
 		* 
 		*/

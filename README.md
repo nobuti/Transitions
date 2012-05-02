@@ -39,7 +39,7 @@ Then use it. Simple.
   			.wait(1)								// wait 1 second
   				.duration(5)						// set duration to 5 secs for this animation
   				.translate(10)						// "move to" transformation
-  				.wait(1)							// wait 1 second
+  				.next()								// then...
   					.duration(0.2)					// and we finish with a very fast transition
   					.translate(100)
   					.now();
